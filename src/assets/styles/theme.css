@@ -1,0 +1,22 @@
+/* Custom theme variables and CSS custom properties */
+/* Extends Tailwind CSS with custom design tokens */
+
+:root {
+  /* Brand colors */
+  --primary: #3b82f6;
+  --primary-dark: #1d4ed8;
+  --secondary: #64748b;
+  
+  /* Status colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  
+  /* Typography */
+  --font-primary: 'Inter', sans-serif;
+  --font-secondary: 'Roboto', sans-serif;
+  
+  /* Spacing */
+  --container-max-width: 1200px;
+  --header-height: 64px;
+}
