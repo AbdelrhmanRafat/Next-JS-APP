@@ -11,9 +11,9 @@ interface AuthContextType {
   login: (credentials: SignInData) => Promise<void>;
   signup: (userData: SignUpData) => Promise<void>;
   logout: () => void;
-  refreshUserData: () => void;
-  hasRole: (role: string) => boolean;
-  hasAnyRole: (roles: string[]) => boolean;
+  refreshUserData: () => Promise<void>;
+  hasRole: (role: string) => Promise<boolean>;
+  hasAnyRole: (roles: string[]) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,10 +32,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     initializeAuth();
   }, []);
 
-  const initializeAuth = () => {
+  const initializeAuth = async (): Promise<void> => {
     try {
-      const currentUser = authService.getCurrentUser();
-      setUser(currentUser);
+      setIsLoading(true);
+      
+      // Get user data from server-side API
+      const userData = await authService.getCurrentUser();
+      setUser(userData);
     } catch (error) {
       console.error('Auth initialization error:', error);
       setUser(null);
@@ -49,12 +52,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       const response = await authService.signIn(credentials);
       
-      // Get user data from token
-      const userData = authService.getCurrentUser();
+      // Get user data from server-side API
+      const userData = await authService.getCurrentUser();
       setUser(userData);
       
-      // Redirect to home or intended page
-      router.push('/home');
+      // Redirect to products or intended page
+      router.push('/products');
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -88,9 +91,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const refreshUserData = (): void => {
+  const refreshUserData = async (): Promise<void> => {
     try {
-      const currentUser = authService.getCurrentUser();
+      const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
     } catch (error) {
       console.error('Refresh user data error:', error);
@@ -98,12 +101,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const hasRole = (role: string): boolean => {
-    return authService.hasRole(role);
+  const hasRole = async (role: string): Promise<boolean> => {
+    return await authService.hasRole(role);
   };
 
-  const hasAnyRole = (roles: string[]): boolean => {
-    return authService.hasAnyRole(roles);
+  const hasAnyRole = async (roles: string[]): Promise<boolean> => {
+    return await authService.hasAnyRole(roles);
   };
 
   const value: AuthContextType = {

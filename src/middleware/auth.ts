@@ -14,6 +14,7 @@ interface DecodedToken {
 const protectedRoutes = {
   // Routes that require authentication
   authenticated: [
+    '/products',
     '/dashboard',
     '/profile',
     '/orders',

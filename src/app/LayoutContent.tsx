@@ -34,8 +34,7 @@ const guestOnlyRoutes = [
 const publicRoutes = [
   '/',
   '/about',
-  '/contact',
-  '/products'
+  '/contact'
 ];
 
 export default function LayoutContent({ children }: LayoutContentProps) {
@@ -43,11 +42,26 @@ export default function LayoutContent({ children }: LayoutContentProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+  const [hasAdminRole, setHasAdminRole] = useState(false);
 
   // Handle client-side hydration
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Check admin role
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (user) {
+        const isAdmin = await hasRole('admin');
+        setHasAdminRole(isAdmin);
+      } else {
+        setHasAdminRole(false);
+      }
+    };
+    
+    checkAdminRole();
+  }, [user, hasRole]);
 
   // Check if current path matches any pattern
   const matchesPath = (path: string, patterns: string[]): boolean => {
@@ -75,7 +89,7 @@ export default function LayoutContent({ children }: LayoutContentProps) {
           document.cookie = 'redirect_after_login=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
           router.push(redirectPath);
         } else {
-          router.push('/home');
+          router.push('/products');
         }
         return;
       }
@@ -92,7 +106,7 @@ export default function LayoutContent({ children }: LayoutContentProps) {
         return;
       }
       
-      if (!hasRole('admin')) {
+      if (!hasAdminRole) {
         router.push('/unauthorized');
         return;
       }
@@ -111,7 +125,7 @@ export default function LayoutContent({ children }: LayoutContentProps) {
     // Handle root path
     if (pathname === '/') {
       if (isAuthenticated) {
-        router.push('/home');
+        router.push('/products');
       } else {
         router.push('/signin');
       }
@@ -144,7 +158,7 @@ export default function LayoutContent({ children }: LayoutContentProps) {
       return null;
     }
     
-    if (matchesPath(pathname, adminRoutes) && (!isAuthenticated || !hasRole('admin'))) {
+    if (matchesPath(pathname, adminRoutes) && (!isAuthenticated || !hasAdminRole)) {
       return null;
     }
     

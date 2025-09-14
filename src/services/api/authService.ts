@@ -69,7 +69,7 @@ class AuthService {
    */
   async signIn(credentials: SignInData): Promise<AuthResponse> {
     try {
-      const response = await fetch(`${baseUrl}/api/v1/auth/signin`, {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,10 +83,9 @@ class AuthService {
         throw new Error(data.message || 'Sign in failed');
       }
 
-      // Store token in HttpOnly cookie
+      // Store token in secure cookie
       if (data.token) {
         setCookie(this.TOKEN_KEY, data.token, {
-          httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
           maxAge: 7 * 24 * 60 * 60, // 7 days
@@ -105,7 +104,7 @@ class AuthService {
    */
   async forgetPassword(email: string): Promise<{ message: string }> {
     try {
-      const response = await fetch(`${baseUrl}/api/v1/auth/forgotPasswords`, {
+      const response = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +130,7 @@ class AuthService {
    */
   async verifyResetCode(code: string): Promise<{ message: string; isValid: boolean }> {
     try {
-      const response = await fetch(`${baseUrl}/api/v1/auth/verifyResetCode`, {
+      const response = await fetch('/api/auth/verify-reset-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -157,7 +156,7 @@ class AuthService {
    */
   async resetPassword(resetData: ResetPasswordData): Promise<{ message: string }> {
     try {
-      const response = await fetch(`${baseUrl}/api/v1/auth/resetPassword`, {
+      const response = await fetch('/api/auth/reset-password', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -179,14 +178,58 @@ class AuthService {
   }
 
   /**
-   * Get stored JWT token
+   * Get JWT token from cookie (server-side only)
    */
   getToken(): string | null {
     return getCookie(this.TOKEN_KEY);
   }
 
   /**
-   * Decode JWT token to extract user information
+   * Get current user from server-side API
+   */
+  async getCurrentUser(): Promise<User | null> {
+    try {
+      const response = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+      return data.authenticated ? data.user : null;
+    } catch (error) {
+      console.error('Get current user error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Check if user is authenticated (server-side API call)
+   */
+  async isAuthenticated(): Promise<boolean> {
+    try {
+      const response = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const data = await response.json();
+      return data.authenticated;
+    } catch (error) {
+      console.error('Authentication check error:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Decode JWT token to extract user information (for server-side use)
    */
   decodeToken(token?: string): User | null {
     try {
@@ -215,21 +258,6 @@ class AuthService {
   }
 
   /**
-   * Check if user is authenticated
-   */
-  isAuthenticated(): boolean {
-    const token = this.getToken();
-    return token !== null && this.decodeToken(token) !== null;
-  }
-
-  /**
-   * Get current user from token
-   */
-  getCurrentUser(): User | null {
-    return this.decodeToken();
-  }
-
-  /**
    * Logout user and remove token
    */
   logout(): void {
@@ -239,16 +267,16 @@ class AuthService {
   /**
    * Check if user has specific role
    */
-  hasRole(role: string): boolean {
-    const user = this.getCurrentUser();
+  async hasRole(role: string): Promise<boolean> {
+    const user = await this.getCurrentUser();
     return user?.role === role;
   }
 
   /**
    * Check if user has any of the specified roles
    */
-  hasAnyRole(roles: string[]): boolean {
-    const user = this.getCurrentUser();
+  async hasAnyRole(roles: string[]): Promise<boolean> {
+    const user = await this.getCurrentUser();
     return user ? roles.includes(user.role) : false;
   }
 }

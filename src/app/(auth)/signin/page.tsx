@@ -32,7 +32,7 @@ export default function SignInPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      const redirectPath = getCookie('redirect_after_login') || '/home';
+      const redirectPath = getCookie('redirect_after_login') || '/products';
       router.push(redirectPath);
     }
   }, [isAuthenticated, router]);
