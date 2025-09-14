@@ -101,7 +101,6 @@ export default function HomePage() {
             <p className="text-gray-600">Browse our catalog and discover new products.</p>
           </Link>
 
-          {hasRole('admin') && (
             <Link
               href="/admin"
               className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200 hover:border-purple-300"
@@ -117,7 +116,6 @@ export default function HomePage() {
               </div>
               <p className="text-gray-600">Access administrative tools and settings.</p>
             </Link>
-          )}
         </div>
 
         {/* Actions */}

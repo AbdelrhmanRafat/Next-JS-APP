@@ -10,6 +10,7 @@ interface FormData {
   email: string;
   password: string;
   rePassword: string;
+  phone: string;
 }
 
 interface FormErrors {
@@ -17,6 +18,7 @@ interface FormErrors {
   email?: string;
   password?: string;
   rePassword?: string;
+  phone?: string;
   general?: string;
 }
 
@@ -26,6 +28,7 @@ export default function SignUpPage() {
     email: '',
     password: '',
     rePassword: '',
+    phone: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,6 +79,13 @@ export default function SignUpPage() {
       newErrors.rePassword = 'Please confirm your password';
     } else if (formData.password !== formData.rePassword) {
       newErrors.rePassword = 'Passwords do not match';
+    }
+
+    // Phone validation
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^[0-9]{10,15}$/.test(formData.phone.replace(/\s+/g, ''))) {
+      newErrors.phone = 'Please enter a valid phone number (10-15 digits)';
     }
 
     setErrors(newErrors);
@@ -152,6 +162,8 @@ export default function SignUpPage() {
         name: formData.name.trim(),
         email: formData.email,
         password: formData.password,
+        rePassword: formData.rePassword,
+        phone: formData.phone,
       });
       // Redirect is handled by the AuthContext
     } catch (error) {
@@ -237,6 +249,28 @@ export default function SignUpPage() {
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              )}
+            </div>
+            
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                Phone Number
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                required
+                value={formData.phone}
+                onChange={handleInputChange}
+                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
+                  errors.phone ? 'border-red-300' : 'border-gray-300'
+                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`}
+                placeholder="Enter your phone number"
+              />
+              {errors.phone && (
+                <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
               )}
             </div>
             

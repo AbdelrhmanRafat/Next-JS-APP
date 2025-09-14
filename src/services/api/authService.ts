@@ -22,6 +22,8 @@ export interface SignUpData {
   name: string;
   email: string;
   password: string;
+  rePassword: string;
+  phone: string;
 }
 
 export interface SignInData {
@@ -43,11 +45,12 @@ class AuthService {
    */
   async signUp(userData: SignUpData): Promise<AuthResponse> {
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(userData),
       });
 
